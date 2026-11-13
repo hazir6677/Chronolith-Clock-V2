@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/mech_audio.dart';
 import '../../theme/brass.dart';
+import '../../theme/mech_assets.dart';
 
 /// A physical brass button: depresses on touch, clicks, vibrates, springs back.
 /// Sound and haptics fire on touch-down so they land with the visual press.
@@ -102,8 +103,9 @@ class _MechanicalButtonState extends State<MechanicalButton>
               child: Center(
                 child: IconTheme(
                   data: IconThemeData(
-                    color: widget.glow ? Brass.amber : Brass.engraved,
+                    color: const Color(0xFF2A2018),
                     size: h * 0.46,
+                    shadows: const [Shadow(color: Color(0x40FFE9B8), offset: Offset(0, 1))],
                   ),
                   child: DefaultTextStyle.merge(
                     style: Brass.engrave(h * 0.34),
@@ -139,6 +141,25 @@ class _ButtonPainter extends CustomPainter {
         ..color = Colors.black.withOpacity(0.6)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.height * 0.07),
     );
+    // Photographed button: brushed brass face with knurled collar.
+    final sprite = !isPill
+        ? MechAssets.image(glow ? 'nav_button_lit.png' : 'nav_button.png')
+        : null;
+    if (sprite != null) {
+      canvas.drawImageRect(
+        sprite,
+        Rect.fromLTWH(0, 0, sprite.width.toDouble(), sprite.height.toDouble()),
+        rect,
+        Paint()
+          ..filterQuality = FilterQuality.high
+          ..isAntiAlias = true
+          ..colorFilter = ColorFilter.mode(
+            Colors.black.withOpacity(0.10 + 0.22 * pressed + (enabled ? 0 : 0.35)),
+            BlendMode.srcATop,
+          ),
+      );
+      return;
+    }
     // Outer collar.
     canvas.drawPath(
       shape(rect, size.height / 2),

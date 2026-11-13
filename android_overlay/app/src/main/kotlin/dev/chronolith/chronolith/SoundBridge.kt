@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.SoundPool
+import android.util.Log
 
 /**
  * Low-latency interface sounds (buttons, crown ticks, levers, flip digits) via SoundPool.
@@ -33,6 +34,7 @@ object SoundBridge {
         for (n in names) {
             val res = ctx.resources.getIdentifier(n, "raw", ctx.packageName)
             if (res != 0) sampleIds[n] = sp.load(ctx, res, 1)
+            else Log.w("SoundBridge", "missing raw resource: $n")
         }
         pool = sp
     }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/mech_audio.dart';
 import '../../theme/brass.dart';
+import '../../theme/mech_assets.dart';
 
 /// A split-flap card. Show one or two characters ("7", "10"). When [value]
 /// changes the old top half falls forward and the new bottom half drops into
@@ -176,26 +177,60 @@ class _CardFace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final top = MechAssets.image('card_top.png');
+    final bottom = MechAssets.image('card_bottom.png');
+    final chars = text.isEmpty ? [''] : text.split('');
+    final cw = width / chars.length;
+    Widget one(String ch) => SizedBox(
+          width: cw,
+          height: height,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (top != null && bottom != null)
+                Column(children: [
+                  Expanded(child: RawImage(image: top, fit: BoxFit.fill, filterQuality: FilterQuality.medium)),
+                  Expanded(child: RawImage(image: bottom, fit: BoxFit.fill, filterQuality: FilterQuality.medium)),
+                ])
+              else
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(height * 0.06),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFF26211D), Color(0xFF14100E), Color(0xFF1B1613)],
+                      stops: [0.0, 0.5, 1.0],
+                    ),
+                  ),
+                  child: const SizedBox.expand(),
+                ),
+              Text(
+                ch,
+                maxLines: 1,
+                softWrap: false,
+                style: Brass.numerals(height * 0.74).copyWith(
+                  color: const Color(0xFFE9DCC0),
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withOpacity(0.7),
+                      offset: Offset(0, height * 0.014),
+                      blurRadius: height * 0.03,
+                    ),
+                    Shadow(
+                      color: Colors.white.withOpacity(0.18),
+                      offset: Offset(0, -height * 0.006),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+    return SizedBox(
       width: width,
       height: height,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(height * 0.075),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF26211D), Color(0xFF14100E), Color(0xFF1B1613)],
-          stops: [0.0, 0.5, 1.0],
-        ),
-        border: Border.all(color: Brass.brassMid.withOpacity(0.55), width: 1.2),
-      ),
-      child: Text(
-        text,
-        maxLines: 1,
-        softWrap: false,
-        style: Brass.numerals(height * 0.74),
-      ),
+      child: Row(children: [for (final ch in chars) one(ch)]),
     );
   }
 }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sounds are looked up by name at runtime (SoundBridge / AlarmService), so the
+     release resource shrinker would otherwise strip them and playback would be silent. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@raw/button_click,@raw/crown_tick,@raw/lever_clack,@raw/flip,@raw/timer_complete,@raw/gear_ambience,@raw/chronolith_twin_bell"
+    />

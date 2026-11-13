@@ -9,6 +9,7 @@ import 'models/clock_models.dart';
 import 'screens/mech_gallery.dart';
 import 'services/alarm_engine.dart';
 import 'services/settings.dart';
+import 'theme/mech_assets.dart';
 import 'widgets/ringing_screen.dart';
 import 'screens/alarm_tab.dart';
 import 'screens/clock_tab.dart';
@@ -23,6 +24,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tzdata.initializeTimeZones();
   await ChronolithSettings.instance.load();
+  await MechAssets.load();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,

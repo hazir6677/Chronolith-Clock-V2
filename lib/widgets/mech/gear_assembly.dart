@@ -1,10 +1,12 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../theme/brass.dart';
+import '../../theme/mech_assets.dart';
 
 /// One gear in a train. Radius is derived from the tooth count, so meshed gears
 /// always touch. A gear with [parent] is placed against its parent at [angle]
@@ -216,10 +218,54 @@ class _GearPainter extends CustomPainter {
 
   Color _dim(Color c) => Color.lerp(c, Brass.smoke, dim)!;
 
+  late final Paint _spritePaint = Paint()
+    ..filterQuality = FilterQuality.medium
+    ..isAntiAlias = true
+    ..colorFilter = ColorFilter.mode(
+      Colors.black.withOpacity(dim), BlendMode.srcATop);
+  late final Paint _shadowPaint = Paint()
+    ..filterQuality = FilterQuality.low
+    ..colorFilter = ColorFilter.mode(
+      Colors.black.withOpacity(0.55), BlendMode.srcIn);
+
+  /// Photo-shaded gear sprite: tip radius is 0.92 of the sprite's half size.
+  void _drawSprite(Canvas canvas, ui.Image img, Offset c, double r, double angle, bool jewel) {
+    final half = r / 0.92;
+    final src = Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble());
+    final dst = Rect.fromCenter(center: Offset.zero, width: half * 2, height: half * 2);
+    canvas.save();
+    canvas.translate(c.dx, c.dy);
+    canvas.rotate(angle);
+    // Contact shadow on the glass-backed plate.
+    canvas.save();
+    canvas.translate(r * 0.035, r * 0.06);
+    canvas.drawImageRect(img, src, dst, _shadowPaint);
+    canvas.restore();
+    canvas.drawImageRect(img, src, dst, _spritePaint);
+    canvas.restore();
+    if (jewel) {
+      final j = MechAssets.image('gears/jewel.png');
+      if (j != null) {
+        final js = Rect.fromLTWH(0, 0, j.width.toDouble(), j.height.toDouble());
+        canvas.drawImageRect(
+          j,
+          js,
+          Rect.fromCenter(center: c, width: r * 0.34, height: r * 0.34),
+          Paint()..filterQuality = FilterQuality.medium,
+        );
+      }
+    }
+  }
+
   void _drawGear(Canvas canvas, Offset c, double r, _Gear g, double t) {
     final phi = g.phase0 + g.omega * t;
     final n = g.teeth;
     final pitch = 2 * math.pi / n;
+    final sprite = MechAssets.gear(n);
+    if (sprite != null) {
+      _drawSprite(canvas, sprite, c, r, phi - 0.5 * pitch, g.jewel);
+      return;
+    }
     final root = r * 0.87;
 
     final path = Path();

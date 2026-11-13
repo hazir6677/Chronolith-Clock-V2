@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../theme/brass.dart';
+import '../../theme/mech_assets.dart';
 
 enum HousingShape { circle, rrect }
 
@@ -39,12 +40,14 @@ class MechanicalHousing extends StatelessWidget {
     return RepaintBoundary(
       child: LayoutBuilder(builder: (context, c) {
         final side = math.min(c.maxWidth, c.maxHeight);
-        final ring = side * ringFraction;
+        final photo = shape == HousingShape.circle && MechAssets.image('bezel_main.png') != null;
+        // The photographed bezel's glass opening is 0.849 of its radius.
+        final ring = photo ? side * (1 - 0.86) / 2 : side * ringFraction;
         return Stack(
           fit: StackFit.expand,
           children: [
             CustomPaint(
-              painter: _RimPainter(shape, ring, cornerRadius, screws, glow),
+              painter: _RimPainter(shape, ring, cornerRadius, screws, glow, photo),
             ),
             Padding(
               padding: EdgeInsets.all(ring),
@@ -97,7 +100,8 @@ Rect _outerRect(Size size, HousingShape shape) {
 }
 
 class _RimPainter extends CustomPainter {
-  _RimPainter(this.shape, this.ring, this.corner, this.screws, this.glow);
+  _RimPainter(this.shape, this.ring, this.corner, this.screws, this.glow, this.photo);
+  final bool photo;
   final HousingShape shape;
   final double ring, corner, glow;
   final int screws;
@@ -107,6 +111,48 @@ class _RimPainter extends CustomPainter {
     final outer = _outerRect(size, shape);
     final inner = outer.deflate(ring);
     final isCircle = shape == HousingShape.circle;
+    final photoImg = photo ? MechAssets.image('bezel_main.png') : null;
+    if (photoImg != null) {
+      // Smoked interior first, then the photographed brass ring on top.
+      final glassR = outer.width / 2 * 0.86;
+      canvas.drawCircle(
+        outer.center.translate(0, outer.width * 0.012),
+        outer.width / 2 * 0.99,
+        Paint()
+          ..color = Colors.black.withOpacity(0.55)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, outer.width * 0.025),
+      );
+      canvas.drawCircle(
+        outer.center,
+        glassR,
+        Paint()
+          ..shader = const RadialGradient(
+            center: Alignment(-0.2, -0.3),
+            radius: 1.0,
+            colors: [Color(0xFF1B1511), Brass.smoke],
+          ).createShader(Rect.fromCircle(center: outer.center, radius: glassR)),
+      );
+      if (glow > 0) {
+        canvas.drawCircle(
+          outer.center,
+          glassR,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = outer.width * 0.03
+            ..color = Brass.amber.withOpacity(0.35 * glow)
+            ..maskFilter = MaskFilter.blur(BlurStyle.normal, outer.width * 0.03),
+        );
+      }
+      canvas.drawImageRect(
+        photoImg,
+        Rect.fromLTWH(0, 0, photoImg.width.toDouble(), photoImg.height.toDouble()),
+        outer,
+        Paint()
+          ..filterQuality = FilterQuality.high
+          ..isAntiAlias = true,
+      );
+      return;
+    }
     Path pathFor(Rect r, double radius) => isCircle
         ? (Path()..addOval(r))
         : (Path()..addRRect(RRect.fromRectAndRadius(r, Radius.circular(radius))));
@@ -221,7 +267,7 @@ class _RimPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RimPainter o) =>
-      o.shape != shape || o.ring != ring || o.glow != glow || o.corner != corner;
+      o.shape != shape || o.ring != ring || o.glow != glow || o.corner != corner || o.photo != photo;
 }
 
 class _GlassPainter extends CustomPainter {
