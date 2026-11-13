@@ -27,3 +27,5 @@ flutter:
     - assets/images/mountain_sunset.png
     - assets/images/avatar_sunset.png
     - assets/images/app_icon.png
+    - assets/mech/
+    - assets/mech/gears/
