@@ -34,6 +34,32 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        SoundBridge.init(applicationContext)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "dev.chronolith.app/sound")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "play" -> {
+                        SoundBridge.play(
+                            call.argument<String>("name") ?: "",
+                            (call.argument<Number>("volume") ?: 1.0).toFloat(),
+                            (call.argument<Number>("rate") ?: 1.0).toFloat()
+                        )
+                        result.success(null)
+                    }
+                    "startAmbience" -> {
+                        SoundBridge.startAmbience(
+                            applicationContext,
+                            (call.argument<Number>("volume") ?: 0.25).toFloat()
+                        )
+                        result.success(null)
+                    }
+                    "stopAmbience" -> {
+                        SoundBridge.stopAmbience()
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName).setMethodCallHandler { call, result ->
             when (call.method) {
                 "pickRingtone" -> {
@@ -132,6 +158,11 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    override fun onDestroy() {
+        SoundBridge.stopAmbience()
+        super.onDestroy()
     }
 
     @Deprecated("Deprecated in Java")

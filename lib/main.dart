@@ -6,7 +6,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 
 import 'models/clock_models.dart';
+import 'screens/mech_gallery.dart';
 import 'services/alarm_engine.dart';
+import 'services/settings.dart';
 import 'widgets/ringing_screen.dart';
 import 'screens/alarm_tab.dart';
 import 'screens/clock_tab.dart';
@@ -17,9 +19,10 @@ import 'theme/chronolith_theme.dart';
 import 'widgets/bottom_nav_pill.dart';
 import 'widgets/organic_shapes.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tzdata.initializeTimeZones();
+  await ChronolithSettings.instance.load();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -460,7 +463,12 @@ class _ChronolithDashboardState extends State<ChronolithDashboard>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
+                    GestureDetector(
+                      // Phase 1 test bench for the mechanical components.
+                      onLongPress: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(builder: (_) => const MechGalleryPage()),
+                      ),
+                      child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -487,6 +495,7 @@ class _ChronolithDashboardState extends State<ChronolithDashboard>
                           ),
                         ),
                       ],
+                    ),
                     ),
                     Row(
                       children: [
